@@ -1,8 +1,6 @@
 ﻿#include "stdafx.h"
 
-namespace malware {
- namespace http {
+namespace local {
 
 
- }///namespace http
-}///namespace malware
+}///namespace local

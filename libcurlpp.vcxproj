@@ -38,13 +38,13 @@
     <ClInclude Include="cache.h" />
     <ClInclude Include="export.h" />
     <ClInclude Include="http.h" />
-    <ClInclude Include="malware.hpp" />
+    <ClInclude Include="libcurlpp.hpp" />
     <ClInclude Include="request.h" />
     <ClInclude Include="response.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="malware.def" />
+    <None Include="libcurlpp.def" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -101,7 +101,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\..\objs\$(Platform)\$(Configuration)\$(SolutionName)\$(ProjectName)\</IntDir>
     <TargetExt>.dll</TargetExt>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
@@ -110,12 +110,12 @@
     <TargetName>$(ProjectName)</TargetName>
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\..\objs\$(Platform)\$(Configuration)\$(SolutionName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\..\objs\$(Platform)\$(Configuration)\$(SolutionName)\$(ProjectName)\</IntDir>
     <TargetExt>.dll</TargetExt>
     <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
@@ -124,7 +124,7 @@
     <TargetName>$(ProjectName)</TargetName>
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)..\..\bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)..\..\objs\$(Platform)\$(Configuration)\$(SolutionName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -134,7 +134,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\3rdparty;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp_0_8_1\include;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include\;$(SolutionDir)..\..\3rdparty\;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp-0.8.1\include\;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4091;4996;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -144,13 +144,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(SolutionDir)..\..\projects\$(ProjectName)\$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\3rdparty\shared\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\3rdparty\openssl\$(Platform)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\librarys\openssl\3.0.5\$(Platform)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)$(TargetName)$(TargetExt) D:\__Codeup.Aliyun.Com__\Martell\projects\gamebox\gamebox-2021-final\bin\$(Configuration)\components\  /Y</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -161,7 +162,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\3rdparty;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp_0_8_1\include;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include\;$(SolutionDir)..\..\3rdparty\;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp-0.8.1\include\;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <DisableSpecificWarnings>4091;4996;</DisableSpecificWarnings>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -171,7 +172,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(SolutionDir)..\..\projects\$(ProjectName)\$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\3rdparty\shared\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\3rdparty\openssl\$(Platform)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\librarys\openssl\3.0.5\$(Platform)\</AdditionalLibraryDirectories>
       <AdditionalDependencies>msvcrtd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>msvcrtd.lib;LIBCMTD;</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -190,7 +191,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\3rdparty;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp_0_8_1\include;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include\;$(SolutionDir)..\..\3rdparty\;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp-0.8.1\include\;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4091;4996;</DisableSpecificWarnings>
       <Optimization>Full</Optimization>
@@ -203,7 +204,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(SolutionDir)..\..\projects\$(ProjectName)\$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\3rdparty\shared\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\3rdparty\openssl\$(Platform)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\librarys\openssl\3.0.5\$(Platform)\</AdditionalLibraryDirectories>
       <AdditionalOptions>/NXCOMPAT:NO %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <IgnoreSpecificDefaultLibraries>
@@ -211,7 +212,8 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)$(TargetName)$(TargetExt) D:\__Codeup.Aliyun.Com__\Martell\projects\gamebox\gamebox-2021-final\bin\$(Configuration)\components\  /Y</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -224,7 +226,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include;$(SolutionDir)..\..\3rdparty;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp_0_8_1\include;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\include\;$(SolutionDir)..\..\3rdparty\;$(SolutionDir)..\..\projects\$(projectname)\;$(SolutionDir)..\..\3rdparty\curlpp-0.8.1\include\;$(SolutionDir)..\..\3rdparty\curl-7.85.0\include\</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <DisableSpecificWarnings>4091;4996;</DisableSpecificWarnings>
       <Optimization>MaxSpeed</Optimization>
@@ -237,7 +239,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <ModuleDefinitionFile>$(SolutionDir)..\..\projects\$(ProjectName)\$(ProjectName).def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\3rdparty\shared\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\3rdparty\openssl\$(Platform)\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\librarys\$(Platform)\$(Configuration)\;$(SolutionDir)..\..\librarys\openssl\3.0.5\$(Platform)\</AdditionalLibraryDirectories>
       <AdditionalOptions>/NXCOMPAT:NO %(AdditionalOptions)</AdditionalOptions>
       <DataExecutionPrevention>false</DataExecutionPrevention>
       <IgnoreSpecificDefaultLibraries>MSVCRT.LIB;LIBCMT;</IgnoreSpecificDefaultLibraries>

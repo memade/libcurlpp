@@ -1,7 +1,7 @@
 ﻿#if !defined(INC_H___6CDDAE11_F6FE_44AD_A8A4_451272E21572__HEAD__)
 #define INC_H___6CDDAE11_F6FE_44AD_A8A4_451272E21572__HEAD__
 
-#define ENABLE_OPENSSL_3 0
+#define ENABLE_OPENSSL_3 1
 
 #include <win.h>
 #include <zip++.h>
@@ -40,13 +40,14 @@
 #include <curlpp/Options.hpp>
 #include <curlpp/Exception.hpp>
 #include <curlpp/Infos.hpp>
-#pragma comment(lib,"curlpp_static_0_8_1.lib")
+#pragma comment(lib,"curlpp-0.8.1.lib")
 //!@ Libcurl 7.85.0
 #define CURL_STATICLIB
-#pragma comment(lib,"libcurl_zlib_openssl3_7.85.0.lib")
+#pragma comment(lib,"libcurl_zlib_ssl3-7.85.0.lib")
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-#include <malware.hpp>
+#include "libcurlpp.hpp"
+using namespace libcurlpp;
 #include "export.h"
 #include "cache.h"
 #include "base.h"
