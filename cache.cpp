@@ -5,6 +5,7 @@ namespace local {
  FileCache::FileCache(const std::string& filePathname) :
   m_FilePathname(filePathname) {
 
+
  }
 
  FileCache::~FileCache() {
