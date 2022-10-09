@@ -38,7 +38,6 @@
     <ClInclude Include="cache.h" />
     <ClInclude Include="export.h" />
     <ClInclude Include="http.h" />
-    <ClInclude Include="libcurlpp.hpp" />
     <ClInclude Include="request.h" />
     <ClInclude Include="response.h" />
     <ClInclude Include="stdafx.h" />
