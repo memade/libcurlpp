@@ -2,7 +2,7 @@
 
 namespace local {
 
- Response::Response() {
+ Response::Response(const TypeIdentify& identify) : IReqResCommData(identify) {
  }
 
  Response::~Response() {
@@ -39,24 +39,82 @@ namespace local {
    m_OsErrno = curlpp::infos::OsErrno::get(*easy);
    m_NumConnects = curlpp::infos::NumConnects::get(*easy);
    m_CookieList = curlpp::infos::CookieList::get(*easy);
+
+   ///CommData
+   m_CurlCode = easy->m_CurlCode;
+   m_CurlMsg = easy->m_CurlMsg;
+   m_WhatRequest = easy->m_WhatRequest;
+   m_ExceptionReason = easy->m_ExceptionReason;
+   m_CachePathname = easy->m_CachePathname;
+   m_RoutePtr = easy->m_RoutePtr;
+   m_OriginalRequestUrl = easy->m_OriginalRequestUrl;
+   m_WriteStream = easy->m_WriteStream;
+   m_ResponseHeaders = easy->m_ResponseHeaders;
+   m_ContentLength = easy->m_ContentLength;
   }
   catch (curlpp::LibcurlRuntimeError& e) {
-   What = e.what();
+   m_WhatResponse = e.what();
   }
   catch (curlpp::LibcurlLogicError& e) {
-   What = e.what();
+   m_WhatResponse = e.what();
   }
   catch (curlpp::LogicError& e) {
-   What = e.what();
+   m_WhatResponse = e.what();
   }
   catch (...) {
-   What = "Comm error.";
+   m_WhatResponse = "Comm error.";
   }
  }
-
+ const TypeIdentify& Response::Identify() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_Identify;
+ }
+ const size_t& Response::ContentLength() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ContentLength;
+ }
+ const TypeHeaders& Response::ResponseHeaders() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ResponseHeaders;
+ }
+ const std::string& Response::Body() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_WriteStream;
+ }
  const std::string& Response::OriginalRequestUrl() const {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
   return m_OriginalRequestUrl;
  }
-
+ void* Response::RoutePtr() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_RoutePtr;
+ }
+ const std::string& Response::WhatResponse() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_WhatResponse;
+ }
+ const std::string& Response::WhatRequest() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_WhatRequest;
+ }
+ const std::string& Response::CachePathname() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_CachePathname;
+ }
+ const unsigned int& Response::CurlCode() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_CurlCode;
+ }
+ const unsigned int& Response::CurlMsg() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_CurlMsg;
+ }
+ const std::string& Response::ExceptionReason() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ExceptionReason;
+ }
+ const long& Response::HttpCode() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ResponseCode;
+ }
 }///namespace local

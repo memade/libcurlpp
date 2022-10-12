@@ -3,26 +3,29 @@
 
 namespace local {
 
- class Response final : public IResponse, public ReqResCommData {
+ class Response final : public IResponse, public IReqResCommData {
   friend class Request;
   std::shared_ptr<std::mutex> m_Mutex = std::make_shared<std::mutex>();
  public:
-  Response();
+  Response(const TypeIdentify& identify);
   virtual ~Response();
  protected:
+  const TypeIdentify& Identify() const override final;
   const std::string& OriginalRequestUrl() const override final;
+  void* RoutePtr() const override final;
+  const std::string& WhatRequest() const override final;
+  const std::string& WhatResponse() const override final;
+  const std::string& CachePathname() const override final;
+  const unsigned int& CurlCode() const override final;
+  const unsigned int& CurlMsg() const override final;
+  const std::string& ExceptionReason() const override final;
+  const long& HttpCode() const override final;
+  const std::string& Body() const override final;
+  const TypeHeaders& ResponseHeaders() const override final;
+  const size_t& ContentLength() const override final;
  private:
   void operator<<(const Request*);
-  std::string What;
-  std::string WhatRequest;
-  std::string m_OriginalRequestUrl;
-  std::string m_PerformExceptionReason;
-  //!@ extern
-  __int64 m_ContentLength = 0;
-  std::string m_ContentBody;
-  std::string m_ContentHead;
-  unsigned int m_CurlCode = -1;
-  unsigned int m_CurlMsg = -1;
+
 
   __int64 m_ResumeFromLarge = 0;
   std::uint64_t m_TimeoutResponseMS = 0;

@@ -3,7 +3,7 @@
 namespace local {
 
  Request::Request(const TypeIdentify& identify) :
-  m_Identify(identify) {
+  IReqResCommData(identify) {
   __Default();
  }
 
@@ -43,7 +43,7 @@ namespace local {
   /// 接收缓冲
   setOpt(new curlpp::options::WriteStream(&m_WriteStreamBuffer));
  }
- TypeIdentify Request::Identify() const {
+ const TypeIdentify& Request::Identify() const {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
   return m_Identify;
  }
@@ -197,7 +197,7 @@ namespace local {
  }
  void Request::What(const std::string& what) {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
-  m_ErrorWhat = what;
+  m_WhatRequest = what;
  }
  void Request::Action(const EnRequestAction& action) {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
@@ -276,11 +276,25 @@ namespace local {
   do {
    if (!m_FinishCb)
     break;
-   auto response = std::make_shared<Response>();
+   m_WriteStream = m_WriteStreamBuffer.str();
+   const char* found = R"(content-length: )";
+   const size_t found_size = ::strlen(found);
+   for (const auto& headstr : m_ResponseHeaders) {
+    auto find = ::StrStrIA(headstr.c_str(), found);
+    if (!find)
+     continue;
+    m_ContentLength = ::strtoul(find + found_size, nullptr, 10);
+    break;
+   }
+   auto response = std::make_shared<Response>(m_Identify);
    /*response->OriginalRequestUrl(m_OriginalRequestUrl);
    response->PerformExceptionReason(m_ExceptionReason);
    response->WhatRequestSet(m_ErrorWhat);*/
    *response << this;
+   //!@ Append res data.
+   //! 
+   //response->
+
    m_FinishCb(dynamic_cast<IResponse*>(response.get()));
   } while (0);
  }
