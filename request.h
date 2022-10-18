@@ -36,6 +36,7 @@ namespace local {
   void What(const std::string&);
   void CurlCodeSet(const CURLcode&);
   void CurlMsgSet(const CURLMSG&);
+  //!@ Finish() append Action = Stop~
   void Finish();
  protected:
   tfFinishCb m_FinishCb = nullptr;

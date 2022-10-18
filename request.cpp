@@ -287,16 +287,11 @@ namespace local {
     break;
    }
    auto response = std::make_shared<Response>(m_Identify);
-   /*response->OriginalRequestUrl(m_OriginalRequestUrl);
-   response->PerformExceptionReason(m_ExceptionReason);
-   response->WhatRequestSet(m_ErrorWhat);*/
    *response << this;
-   //!@ Append res data.
-   //! 
-   //response->
-
    m_FinishCb(dynamic_cast<IResponse*>(response.get()));
   } while (0);
+
+  m_Action = EnRequestAction::Stop;
  }
 
 }///namespace local

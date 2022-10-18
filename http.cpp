@@ -177,6 +177,8 @@ namespace local {
        /*The mission was not successfully completed*/
        //pReqObj->
        pReqObj->Finish();
+       pReqObj->Action(EnRequestAction::Finish);
+       auto sk = 0;
       }
      }break;
      }///switch
@@ -199,67 +201,63 @@ namespace local {
   SK_DELETE_PTR(pMulti);
  }
  void Http::Process() {
+  /*std::vector<Request*> removes;*/
   do {
-   do {
-    if (m_Requests.empty())
-     break;
-    m_Requests.iterate_clear(
-     [&](const auto& identify, Request* task, auto& itbreak, auto& itclear) {
-      switch (task->Action()) {
-      case EnRequestAction::Normal: {
+   m_Requests.iterate_clear(
+    [&](const auto& identify, Request* task, auto& itbreak, auto& itclear) {
+     switch (task->Action()) {
+     case EnRequestAction::Normal: {
 
-      }break;
-      case EnRequestAction::Start: {
-       if (task->Status() == EnRequestStatus::Running)
-        break;
-       task->Status(EnRequestStatus::Running);
+     }break;
+     case EnRequestAction::Start: {
+      if (task->Status() == EnRequestStatus::Running)
+       break;
+      task->Status(EnRequestStatus::Running);
 
-       Push(task);
+      Push(task);
 #if 0
-       try {
-        task->perform();
-       }
-       catch (curlpp::LogicError& e) {
-        task->What(e.what());
-       }
-       catch (curlpp::RuntimeError& e) {
-        task->What(e.what());
-       }
-       catch (...) {
-        task->What("Comm error.");
-       }
-       task->Action(EnRequestAction::Finish);
-#endif
-      }break;
-      case EnRequestAction::Finish: {
-       if (task->Status() == EnRequestStatus::Finished)
-        break;
-       task->Status(EnRequestStatus::Finished);
-       task->Finish();
-       task->Action(EnRequestAction::Stop);
-      }break;
-      case EnRequestAction::Stop: {
-       if (task->Status() == EnRequestStatus::Stopped)
-        break;
-       task->Status(EnRequestStatus::Stopped);
-
-
-      }break;
-      case EnRequestAction::Remove: {
-
-
-
-       itclear = true;
-      }break;
-      default: {
-
-      }break;
+      try {
+       task->perform();
       }
+      catch (curlpp::LogicError& e) {
+       task->What(e.what());
+      }
+      catch (curlpp::RuntimeError& e) {
+       task->What(e.what());
+      }
+      catch (...) {
+       task->What("Comm error.");
+      }
+      task->Action(EnRequestAction::Finish);
+#endif
+     }break;
+     case EnRequestAction::Finish: {
+      if (task->Status() == EnRequestStatus::Finished)
+       break;
+      task->Status(EnRequestStatus::Finished);
+      task->Finish();
+     }break;
+     case EnRequestAction::Stop: {
+      if (task->Status() == EnRequestStatus::Stopped)
+       break;
+      task->Status(EnRequestStatus::Stopped);
 
+      task->Action(EnRequestAction::Remove);
+     }break;
+     case EnRequestAction::Remove: {
+      /*removes.emplace_back(task);*/
+      itclear = true;
+     }break;
+     default: {
 
-     });
-   } while (0);
+     }break;
+     }
+    });
 
+   /*for (auto it = removes.begin(); it != removes.end();) {
+    SK_DELETE_PTR(*it);
+    it = removes.erase(it);
+   }*/
    if (!m_IsOpen.load())
     break;
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -482,6 +480,18 @@ namespace local {
     auto found = head_field.find("\r\n");
     if (found == std::string::npos)
      break;
+    //!@ HTTP/1.1 200 OK
+    //!
+    //!  
+    found = head_field.find("200 OK");
+    if (found != std::string::npos) {
+     result = true;
+     break;
+    }
+    if (head_field.compare("\r\n") == 0) {
+     result = true;
+     break;
+    }
     found = head_field.find(": ");
     if (found == std::string::npos)
      break;
@@ -578,6 +588,7 @@ namespace local {
   const double& ProgressInfo::percentage() const {
    return m_percentage;
   }
+
 
 
 }///namespace local
