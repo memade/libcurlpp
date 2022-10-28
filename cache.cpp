@@ -11,6 +11,11 @@ namespace local {
  FileCache::~FileCache() {
 
  }
+ void FileCache::Reset() {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  if (shared::Win::AccessA(m_FilePathname))
+   shared::Win::File::Empty(m_FilePathname);
+ }
  bool FileCache::Write(const char* data, const long long& size) {
   bool result = false;
   std::lock_guard<std::mutex> lock{ *m_Mutex };

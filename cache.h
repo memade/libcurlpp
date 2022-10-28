@@ -11,6 +11,7 @@ namespace local {
  public:
   bool Write(const char*, const long long&);
   std::streampos FileSizeGet() const;
+  void Reset();
  private:
   const std::string m_FilePathname;
  };

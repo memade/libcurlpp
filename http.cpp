@@ -73,6 +73,10 @@ namespace local {
     });
   }
  }
+ void Http::RegisterTaskNotifyCallback(const tfTaskNotifyCallback& notify_cb) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_TaskNotifyCallback = notify_cb;
+ }
  IRequest* Http::SearchRequest(const TypeIdentify& identify) const {
   IRequest* result = nullptr;
   std::lock_guard<std::mutex> lock{ *m_Mutex };
@@ -95,7 +99,8 @@ namespace local {
  }
  void Http::Perform(IRequest* inReqObj) const {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
-  do {
+
+  for (int i = 0; i < 2; ++i) {
    if (!inReqObj)
     break;
    auto reqObj = dynamic_cast<Request*>(inReqObj);
@@ -104,18 +109,32 @@ namespace local {
 
    try {
     reqObj->perform();
+    reqObj->CurlCodeSet(CURLcode::CURLE_OK);
    }
-   catch (curlpp::LogicError& e) {
+   catch (curlpp::LibcurlLogicError& e) {
+    reqObj->CurlCodeSet(e.whatCode());
     reqObj->What(e.what());
    }
-   catch (curlpp::RuntimeError& e) {
+   catch (curlpp::LibcurlRuntimeError& e) {
+    reqObj->CurlCodeSet(e.whatCode());
     reqObj->What(e.what());
    }
    catch (...) {
+    reqObj->CurlCodeSet(CURLcode::CURLE_AUTH_ERROR);
     reqObj->What("Comm error.");
    }
+
+   if (reqObj->CurlCodeGet() == CURLcode::CURLE_RANGE_ERROR) {
+    reqObj->CleanCacheFile();
+    inReqObj->ResumeFromLarge(0);
+
+    std::cout << "Todo 'ResumeFromLarge' reason reset download." << std::endl;
+    continue;
+   }
+
    reqObj->Finish();
-  } while (0);
+   break;
+  }
  }
 
  void Http::PerformM(const std::vector<IRequest*>& inReqObjs) const {
@@ -177,6 +196,8 @@ namespace local {
        /*The mission was not successfully completed*/
        //pReqObj->
        pReqObj->Finish();
+
+       //!@TODO : 注意这里的判断不完善
        pReqObj->Action(EnRequestAction::Finish);
        auto sk = 0;
       }
@@ -193,71 +214,47 @@ namespace local {
    catch (...) {
     std::cout << "http common error." << std::endl;
    }
-
-
-
-   auto xx = 0;
   } while (0);
   SK_DELETE_PTR(pMulti);
  }
  void Http::Process() {
-  /*std::vector<Request*> removes;*/
   do {
    m_Requests.iterate_clear(
     [&](const auto& identify, Request* task, auto& itbreak, auto& itclear) {
-     switch (task->Action()) {
+#if 0
+     curlpp::options::Header head;
+     task->getOpt(head);
+     curlpp::options::NoBody nobody;
+     task->getOpt(nobody);
+     auto msg = \
+      std::format("Task({}) head({}) body({}) action({}).", task->Identify(), head.getValue() ? "true" : "false", nobody.getValue() ? "true" : "false", static_cast<unsigned long long>(task->Status()));
+     ::MessageBoxA(NULL, msg.c_str(), NULL, MB_TOPMOST);
+#endif
+     switch (task->Status()) {
      case EnRequestAction::Normal: {
 
      }break;
-     case EnRequestAction::Start: {
-      if (task->Status() == EnRequestStatus::Running)
-       break;
-      task->Status(EnRequestStatus::Running);
+     case EnRequestAction::Running: {
 
-      Push(task);
-#if 0
-      try {
-       task->perform();
-      }
-      catch (curlpp::LogicError& e) {
-       task->What(e.what());
-      }
-      catch (curlpp::RuntimeError& e) {
-       task->What(e.what());
-      }
-      catch (...) {
-       task->What("Comm error.");
-      }
-      task->Action(EnRequestAction::Finish);
-#endif
+     }break;
+     case EnRequestAction::Start: {
+      task->Action(EnRequestStatus::Running);
+      Push(dynamic_cast<curlpp::Easy*>(task));
      }break;
      case EnRequestAction::Finish: {
-      if (task->Status() == EnRequestStatus::Finished)
-       break;
-      task->Status(EnRequestStatus::Finished);
+      task->Action(EnRequestStatus::Finished);
       task->Finish();
      }break;
      case EnRequestAction::Stop: {
-      if (task->Status() == EnRequestStatus::Stopped)
-       break;
-      task->Status(EnRequestStatus::Stopped);
-
       task->Action(EnRequestAction::Remove);
      }break;
      case EnRequestAction::Remove: {
-      /*removes.emplace_back(task);*/
       itclear = true;
      }break;
      default: {
-
      }break;
      }
     });
-
-   /*for (auto it = removes.begin(); it != removes.end();) {
-    SK_DELETE_PTR(*it);
-    it = removes.erase(it);
-   }*/
    if (!m_IsOpen.load())
     break;
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -265,8 +262,21 @@ namespace local {
  }
 
  void Http::Perform() {
+
+  //!@ According to business requirements, tasks that need to be re-downloaded in the event of a specified error
+  std::vector<Request*> redown_s;
+
   do {
+
+   for (Request* req : redown_s) {
+    req->CleanCacheFile();
+    req->ResumeFromLarge(0);
+    Push(dynamic_cast<curlpp::Easy*>(req));
+   }
+   redown_s.clear();
+
    do {
+
     try {
      int nbLeft = 0;
      /* we start some action by calling perform right away */
@@ -310,7 +320,14 @@ namespace local {
 
          auto success = 1;
         } while (0);
-        pReqObj->Action(EnRequestAction::Finish);
+
+        if (pReqObj->CurlCodeGet() == CURLcode::CURLE_RANGE_ERROR) {
+         redown_s.emplace_back(pReqObj);
+         std::cout << std::format("Todo task({}) 'ResumeFromLarge' reason reset download.", pReqObj->Identify()) << std::endl;
+        }
+        else {
+         pReqObj->Action(EnRequestAction::Finish);
+        }
         Pop(msg.first);
        }
       }break;
@@ -334,133 +351,6 @@ namespace local {
    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
   } while (1);
  }
-
-#if 0
- bool Http::Perform() {
-  bool result = false;
-  std::lock_guard<std::mutex> lock{ *m_Mutex };
-  do {
-   if (!m_IsOpen.load())
-    break;
-#if 0
-   do {
-    try {
-     curlpp::Cleanup cleaner;
-     int nbLeft = 0;
-     /* we start some action by calling perform right away */
-     while (!curlpp::Multi::perform(&nbLeft)) {};
-     while (nbLeft) {
-      struct timeval timeout;
-      int rc; /* select() return code */
-      fd_set fdread;
-      fd_set fdwrite;
-      fd_set fdexcep;
-      int maxfd = 0;
-      FD_ZERO(&fdread);
-      FD_ZERO(&fdwrite);
-      FD_ZERO(&fdexcep);
-      /* set a suitable timeout to play around with */
-      timeout.tv_sec = 1;
-      timeout.tv_usec = 0;
-      /* get file descriptors from the transfers */
-      curlpp::Multi::fdset(&fdread, &fdwrite, &fdexcep, &maxfd);
-      rc = ::select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
-      switch (rc) {
-      case -1:
-       /* select error */
-       nbLeft = 0;
-       printf("select() returns error, this is badness\n");
-       break;
-      case 0:
-      default:
-       /* timeout or readable/writable sockets */
-       while (!curlpp::Multi::perform(&nbLeft)) {};
-       break;
-      }
-     }
-
-     std::cout << "NB lefts: " << nbLeft << std::endl;
-    }
-    catch (curlpp::LogicError& e) {
-     std::cout << e.what() << std::endl;
-    }
-    catch (curlpp::RuntimeError& e) {
-     std::cout << e.what() << std::endl;
-    }
-    catch (...) {
-     std::cout << "http common error." << std::endl;
-    }
-   } while (0);
-#endif
-#if 0
-   std::vector<curlpp::Easy*> Clearup;
-   do {
-    auto tasks = pRouteObj->Tasks();
-    if (tasks.empty())
-     break;
-    /*curlpp::Cleanup Cleanup;*/
-    for (auto& task : tasks) {
-     auto pReqObj = dynamic_cast<RequestObj*>(std::get<0>(task));
-     auto pResObj = dynamic_cast<ResponseObj*>(std::get<1>(task));
-     curlpp::Easy* pEasyObj = new curlpp::Easy();
-     pEasyObj->setOpt(new curlpp::options::Verbose(m_Verbose.load()));
-     pEasyObj->setOpt(new curlpp::options::Private(&task));
-     *pResObj << pReqObj;
-     *pReqObj >> pEasyObj;
-     pMultiObj->add(pEasyObj);
-     Clearup.emplace_back(pEasyObj);
-    }//for
-
-    try {
-     int nbLeft = 0;
-     while (!pMultiObj->perform(&nbLeft)) {};
-     do {
-      int numfds = 0;
-      pMultiObj->MultiWait(nullptr, 0, static_cast<unsigned int>(pRouteObj->MultiWait()), &numfds);
-#if 0
-      if (res != CURLM_OK)
-       return EXIT_FAILURE;
-#endif
-      while (!pMultiObj->perform(&nbLeft)) {};
-      curlpp::Multi::Msgs msgs = pMultiObj->info();
-      for (std::pair<const curlpp::Easy*, curlpp::Multi::Info>& msg : msgs) {
-       auto pRouteTask = reinterpret_cast<std::tuple<RequestObj*, ResponseObj*>*>(curlpp::infos::PrivateData::get(*msg.first));
-       auto pReqObj = dynamic_cast<RequestObj*>(std::get<0>(*pRouteTask));
-       auto pResObj = dynamic_cast<ResponseObj*>(std::get<1>(*pRouteTask));
-       pResObj->ReasonCode(msg.second.code);
-       if (msg.second.code == CURLcode::CURLE_OK && msg.second.msg == CURLMSG::CURLMSG_DONE) {
-        *pResObj << *msg.first;
-        *pResObj << pReqObj->Stream();
-       }
-       else {
-        pResObj->Reason("Request failed.");
-       }
-       pReqObj->ResultCb(pResObj);
-       pMultiObj->remove(msg.first);
-      }
-     } while (nbLeft > 0);
-     result = true;
-    }
-    catch (curlpp::LibcurlRuntimeError& e) {
-     auto ee = e.what();
-    }
-    catch (curlpp::LibcurlLogicError& e) {
-     auto ee = e.what();
-    }
-    catch (curlpp::LogicError& e) {
-     auto ee = e.what();
-    }
-    catch (...) {
-     auto sk = 0;
-    }
-#endif
-    result = true;
-   } while (0);
-   return result;
-  }
-#endif
-
-
 
 
   /// GenerateIdentify() is class private methods are not allowed to be locked.
@@ -500,12 +390,33 @@ namespace local {
    } while (0);
    return result;
   }
+  bool Http::UpdateProgressInfo(ProgressInfo* progress_info, const double& total, const double& current, const double& prev_current, const time_t& time_interval_ms) {
+   bool result = false;
+   do {
+    if (!progress_info)
+     break;
+    ::memset(progress_info, 0x00, sizeof(*progress_info));
+    if (total <= 0 || current <= 0)
+     break;
+    progress_info->m_current = current;
+    progress_info->m_total = total;
+    progress_info->m_percentage = (current / total) * 100.0;
+    auto current_increment = current - prev_current;
+    if (prev_current > 0 && time_interval_ms >= 1000 && current_increment > 0) {
+     auto total_s = (time_interval_ms - (time_interval_ms % 1000)) / 1000;
+     progress_info->m_speed_s = current_increment / total_s;
+    }
+    if (progress_info->m_speed_s > 0)
+     progress_info->m_time_s = __max(0, static_cast<decltype(ProgressInfo::m_time_s)>((total - current) / progress_info->m_speed_s));
+    result = true;
+   } while (0);
+   return result;
+  }
   std::shared_ptr<ProgressInfo> Http::GenerateProgressInfo(const double& total, const double& current, const double& prev_current, const time_t & time_interval_ms) {
-   std::shared_ptr<ProgressInfo> result;
+   std::shared_ptr<ProgressInfo> result = std::make_shared<ProgressInfo>();
    do {
     if (total <= 0 || current <= 0)
      break;
-    result = std::make_shared<ProgressInfo>();
     result->m_current = current;
     result->m_total = total;
     result->m_percentage = (current / total) * 100.0;

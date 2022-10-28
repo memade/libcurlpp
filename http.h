@@ -40,6 +40,7 @@ namespace local {
   void DestoryRequest(const IRequest*) override final;
   void DestoryRequest(const std::vector<IRequest*>&) override final;
   IRequest* SearchRequest(const TypeIdentify&) const override final;
+  void RegisterTaskNotifyCallback(const tfTaskNotifyCallback&) override final;
  private:
   /// Generate request task identify
   TypeIdentify GenerateIdentify() const;
@@ -50,10 +51,12 @@ namespace local {
   void Process();
   void Perform();
   std::vector<std::thread> m_Threads;
+  tfTaskNotifyCallback m_TaskNotifyCallback = nullptr;
  public:
   static std::string UrlFixed(const std::string& ascii_url, \
    const std::string& not_fixed_strings = R"(abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.?=&%:/\)");
   static bool HeaderParse(const std::string& head_field, TypeHeaders& out);
+  static bool UpdateProgressInfo(ProgressInfo* progress_info, const double& total, const double& current, const double& prev_current, const time_t& time_interval_ms);
   static std::shared_ptr<ProgressInfo> GenerateProgressInfo(const double& total, const double& current, const double& prev_current, const time_t& time_interval_ms);
  };
 

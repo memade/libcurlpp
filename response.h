@@ -2,8 +2,8 @@
 #define INC_H___3D9AAFA7_34E9_4421_A70F_1D8E4230A42B__HEAD__
 
 namespace local {
-
- class Response final : public IResponse, public IReqResCommData {
+ class ProgressInfo;
+ class Response final : public IResponse {
   friend class Request;
   std::shared_ptr<std::mutex> m_Mutex = std::make_shared<std::mutex>();
  public:
@@ -23,11 +23,41 @@ namespace local {
   const std::string& Body() const override final;
   const TypeHeaders& ResponseHeaders() const override final;
   const size_t& ContentLength() const override final;
+  bool ResultFinal() const override final;
+ private:
+  const TypeIdentify m_Identify;
+  TypeHeaders m_ResponseHeaders;
+  std::string m_OriginalRequestUrl;
+  void* m_RoutePtr = nullptr;
+  std::string m_CachePathname;
+  FileCache* m_pFileCache = nullptr;
+  unsigned int m_CurlCode = -1;
+  unsigned int m_CurlMsg = -1;
+  std::string m_ExceptionReason;
+  std::string m_WriteStream;
+  size_t m_ContentLength = 0;
+  std::string m_WhatResponse;
+  std::string m_WhatRequest;
+  long long m_TargetTotalSize = 0;
+ private:
+  TypeHeaders m_RequestHeadersCache;
+  std::atomic_llong m_LastDownSize = 0;
+  std::atomic_llong m_LastDownTimestampMS = 0;
+  std::atomic_llong m_LastUploadSize = 0;
+  std::atomic_llong m_LastUploadTimestampMS = 0;
+  std::atomic_llong m_ResumeFromLarge = 0;
+  std::atomic_llong m_MaxRecvSpeedLarge = 0;
+  std::atomic<EnRequestAction> m_Action = EnRequestAction::Normal;
+  std::atomic<EnRequestType> m_RequestType = EnRequestType::REQUEST_TYPE_GET;
+  std::atomic<EnResumeFromLargeMode> m_ResumeFromLargeMode = EnResumeFromLargeMode::Addup;
+ public:
+  std::shared_ptr<ProgressInfo> DownProgressInfoGet() const;
  private:
   void operator<<(const Request*);
+  void operator<<(const tagProgress&);
+  ProgressInfo* m_pProgressInfoUpload = nullptr;
+  ProgressInfo* m_pProgressInfoDownload = nullptr;
 
-
-  __int64 m_ResumeFromLarge = 0;
   std::uint64_t m_TimeoutResponseMS = 0;
   std::string m_EffectiveUrl;
   long m_ResponseCode = 0;

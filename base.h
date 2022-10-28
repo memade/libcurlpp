@@ -3,23 +3,15 @@
 
 namespace local {
 
- class IReqResCommData : public shared::IRuntimeRecorder {
- public:
-  IReqResCommData(const TypeIdentify& identify) : m_Identify(identify) {}
- public:
-  const TypeIdentify m_Identify;
-  TypeHeaders m_ResponseHeaders;
-  std::string m_OriginalRequestUrl;
-  void* m_RoutePtr = nullptr;
-  std::string m_CachePathname;
-  FileCache* m_pFileCache = nullptr;
-  unsigned int m_CurlCode = -1;
-  unsigned int m_CurlMsg = -1;
-  std::string m_ExceptionReason;
-  std::string m_WriteStream;
-  size_t m_ContentLength = 0;
-  std::string m_WhatResponse;
-  std::string m_WhatRequest;
+ struct tagProgress {
+  double total_down;
+  double current_down;
+  double total_upload;
+  double current_upload;
+
+  long long current_time_stamp;
+  tagProgress() { ::memset(this, 0x00, sizeof(*this)); }
+  void operator=(const tagProgress& obj) { ::memcpy(this,&obj,sizeof(*this)); }
  };
 
 }///namespace local

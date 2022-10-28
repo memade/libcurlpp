@@ -2,7 +2,7 @@
 #define INC_H___DE900CDD_AFE5_4FB6_BE64_FA1E0D31E988__HEAD__
 
 namespace local {
- class Request final : public IRequest, public curlpp::Easy, public IReqResCommData {
+ class Request final : public IRequest, public curlpp::Easy {
   std::shared_ptr<std::mutex> m_Mutex = std::make_shared<std::mutex>();
  public:
   Request(const TypeIdentify&);
@@ -10,7 +10,6 @@ namespace local {
  private:
   void __Default();
  protected:
-  const TypeIdentify& Identify() const override final;
   void Default() override final;
   void Verbose(const bool&) override final;
   void Header(const bool&) override final;
@@ -26,32 +25,32 @@ namespace local {
   void EnableWriteStream(const bool&) override final;
   bool CachePathname(const std::string&) override final;
   void MaxRecvSpeedLarge(const long long&) override final;
+  void ResumeFromLargeMode(const EnResumeFromLargeMode&) override final;
+  const IResponse* ResponseGet() const override final;
  public:
+  const TypeIdentify& Identify() const override final;
+  long long LastDownSize() const override final;
+  void ResumeFromLarge(const long long&) override final;
+  long long ResumeFromLarge() const override final;
   void Action(const EnRequestAction&) override final;
-  const EnRequestStatus& Status() const override final;
+  EnRequestStatus Status() const override final;
+  long long TargetTotalSize() const override final;
+  void CleanCacheFile();
  public:
-  const EnRequestAction& Action() const;
   long long MaxRecvSpeedLarge() const;
-  void Status(const EnRequestStatus&);
   void What(const std::string&);
   void CurlCodeSet(const CURLcode&);
   void CurlMsgSet(const CURLMSG&);
+  const unsigned int& CurlCodeGet() const;
+  const unsigned int& CurlMsgGet() const;
   //!@ Finish() append Action = Stop~
   void Finish();
  protected:
   tfFinishCb m_FinishCb = nullptr;
   tfProgressCb m_ProgressCb = nullptr;
   std::ostringstream m_WriteStreamBuffer;
-  EnRequestAction m_Action = EnRequestAction::Normal;
-  EnRequestStatus m_Status = EnRequestStatus::Normal;
-  EnRequestType m_RequestType = EnRequestType::REQUEST_TYPE_GET;
-  TypeHeaders m_RequestHeadersCache;
-  std::atomic_llong m_LastDownSize = 0;
-  std::atomic_llong m_LastDownTimestampMS = 0;
-  std::atomic_llong m_LastUploadSize = 0;
-  std::atomic_llong m_LastUploadTimestampMS = 0;
-  std::atomic_llong m_ResumeFromLarge = 0;
-  std::atomic_llong m_MaxRecvSpeedLarge = 0;
+ private:
+  Response* m_pResponse = nullptr;
  };
 
 
