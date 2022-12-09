@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 
-namespace local {
+namespace libcurlpp {
 
 
-}///namespace local
+}///namespace libcurlpp

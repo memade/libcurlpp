@@ -3,6 +3,8 @@
 
 #define ENABLE_OPENSSL_3 1
 
+#define WINLIB_DISABLE_WINHTTP
+#define WINLIB_DISABLE_WININET
 #include <win.h>
 #include <zip++.h>
 
@@ -48,6 +50,7 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 #include <libcurlpp.hpp>
 using namespace libcurlpp;
+#include "libcurlpp.h"
 #include "export.h"
 #include "cache.h"
 #include "base.h"

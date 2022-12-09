@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 
-namespace local {
+namespace libcurlpp {
 
  FileCache::FileCache(const std::string& filePathname) :
   m_FilePathname(filePathname) {
@@ -39,4 +39,4 @@ namespace local {
   return result;
  }
 
-}///namespace local
+}///namespace libcurlpp

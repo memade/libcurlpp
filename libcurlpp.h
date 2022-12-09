@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 
-namespace local {
+namespace libcurlpp {
 
  class ProgressInfo final : public IProgressInfo {
   friend class Request;
@@ -23,35 +23,34 @@ namespace local {
   double m_percentage = 0;
  };
 
- class Http final : public IHttpApi, public curlpp::IMulti {
+ class Libcurlpp final : public ILibcurlpp {
+  std::shared_ptr<std::mutex> m_Mutex = std::make_shared<std::mutex>();
  public:
-  Http();
-  virtual ~Http();
+  Libcurlpp();
+  virtual ~Libcurlpp();
  private:
-  void Init() override final;
-  void UnInit() override final;
+  void Init();
+  void UnInit();
  public:
-  bool Open();
-  void Close();
- protected:
+  bool Start() override final;
+  void Stop() override final;
+  void Release() const;
+ public:
   void Perform(IRequest*) const override final;
   void PerformM(const std::vector<IRequest*>&) const override final;
-  IRequest* CreateRequest() override final;
-  void DestoryRequest(const IRequest*) override final;
-  void DestoryRequest(const std::vector<IRequest*>&) override final;
-  IRequest* SearchRequest(const TypeIdentify&) const override final;
-  void RegisterTaskNotifyCallback(const tfTaskNotifyCallback&) override final;
+  IRequest* CreateRequest(const TypeIdentify&) override final;
+  void DestoryRequest(const TypeIdentify&) override final;
+  void DestoryRequest(const std::vector<TypeIdentify>&) override final;
+  IRequest* GetRequest(const TypeIdentify&) const override final;
  private:
-  /// Generate request task identify
-  TypeIdentify GenerateIdentify() const;
- private:
+  curlpp::IMulti* m_pCurlMulti = nullptr;
   std::atomic_bool m_IsOpen = false;
   std::atomic_bool m_Ready = false;
-  shared::container::map<TypeIdentify, Request*> m_Requests;
-  void Process();
-  void Perform();
+  shared::container::map<TypeIdentify, Request*> m_RequestQ;
+  shared::container::map<TypeIdentify, Request*> m_MasterControlQ;
+  void MasterControl();
+  void MultiPerform();
   std::vector<std::thread> m_Threads;
-  tfTaskNotifyCallback m_TaskNotifyCallback = nullptr;
  public:
   static std::string UrlFixed(const std::string& ascii_url, \
    const std::string& not_fixed_strings = R"(abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.?=&%:/\)");
@@ -60,7 +59,5 @@ namespace local {
   static std::shared_ptr<ProgressInfo> GenerateProgressInfo(const double& total, const double& current, const double& prev_current, const time_t& time_interval_ms);
  };
 
-
-
- extern Http* __gpHttp;
-}///namespace local
+ extern Libcurlpp* __gpLibcurlpp;
+}///namespace libcurlpp

@@ -1,22 +1,19 @@
 ﻿#if !defined(INC_H___DE900CDD_AFE5_4FB6_BE64_FA1E0D31E988__HEAD__)
 #define INC_H___DE900CDD_AFE5_4FB6_BE64_FA1E0D31E988__HEAD__
 
-namespace local {
+namespace libcurlpp {
  class Request final : public IRequest, public curlpp::Easy {
   std::shared_ptr<std::mutex> m_Mutex = std::make_shared<std::mutex>();
  public:
   Request(const TypeIdentify&);
   virtual ~Request();
- private:
-  void __Default();
  protected:
-  void Default() override final;
   void Verbose(const bool&) override final;
   void Header(const bool&) override final;
   void RequestType(const EnRequestType&) override final;
   void RequestUrl(const std::string&) override final;
   void HeadersSet(const TypeHeaders&) override final;
-  bool HeadersAdd(const std::string&) override final;
+  void HeadersAdd(const std::string&) override final;
   void RoutePtr(void*) override final;
   void* RoutePtr() const override final;
   void FinishCb(const tfFinishCb&) override final;
@@ -54,7 +51,8 @@ namespace local {
  };
 
 
-}///namespace local
+}///namespace libcurlpp
+
 
 /// /*新生®（上海）**/
 /// /*2022_09_08T11:13:10.7275602Z**/

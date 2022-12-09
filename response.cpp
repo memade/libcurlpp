@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 
-namespace local {
+namespace libcurlpp {
 
  Response::Response(const TypeIdentify& identify) :
   m_Identify(identify),
@@ -34,7 +34,7 @@ namespace local {
  void Response::operator<<(const tagProgress& progress_info) {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
   if (m_pProgressInfoDownload) {
-   Http::UpdateProgressInfo(m_pProgressInfoDownload, progress_info.total_down, progress_info.current_down,
+   Libcurlpp::UpdateProgressInfo(m_pProgressInfoDownload, progress_info.total_down, progress_info.current_down,
     m_LastDownSize.load() * 1.0,
     m_LastDownTimestampMS.load() > 0 ? (progress_info.current_time_stamp - m_LastDownTimestampMS.load()) : (0));
 
@@ -42,11 +42,187 @@ namespace local {
    if (m_pProgressInfoDownload->m_speed_s > 0 || m_LastDownTimestampMS.load() <= 0 || m_LastDownSize.load() <= 0) {
     m_LastDownSize.store(static_cast<long long>(progress_info.current_down));
     m_LastDownTimestampMS.store(progress_info.current_time_stamp);
+
+    m_LastDownSpeed.store(m_pProgressInfoDownload->m_speed_s);
+    m_LastDownRemainTime.store(m_pProgressInfoDownload->m_time_s);
    }
 
+   if (m_pProgressInfoDownload->m_speed_s <= 0 && m_LastDownSpeed.load() > 0) {
+    m_pProgressInfoDownload->m_speed_s = m_LastDownSpeed.load();
+    m_pProgressInfoDownload->m_time_s = m_LastDownRemainTime.load();
+   }
   }
   if (m_pProgressInfoUpload) {
 
+  }
+ }
+ EnRequestAction Response::Status() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_Action.load();
+ }
+ const std::string& Response::FixedRequestUrl() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_FixedRequestUrl;
+ }
+ void Response::Action(const EnRequestAction& action) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_Action.store(action);
+ }
+ long long Response::TargetTotalSize() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_TargetTotalSize.load();
+ }
+ long long Response::ResumeFromLarge() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ResumeFromLarge.load();
+ }
+ void Response::ResumeFromLarge(const long long& size) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_ResumeFromLarge.store(size);
+ }
+ void Response::TargetTotalSize(const long long& total) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_TargetTotalSize.store(total);
+ }
+ void Response::FixedRequestUrl(const std::string& url) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_FixedRequestUrl = url;
+ }
+ void Response::OriginalRequestUrl(const std::string& url) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_OriginalRequestUrl = url;
+ }
+ TypeHeaders* Response::ResponseHeaders() {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return &m_ResponseHeaders;
+ }
+ bool Response::WriteToCacheFile(const char* data, const size_t& size) {
+  bool result = false;
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  do {
+   if (!m_pFileCache)
+    break;
+   result = m_pFileCache->Write(data, size);
+  } while (0);
+  return result;
+ }
+ bool Response::EnableCacheFile() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_pFileCache ? true : false;
+ }
+ void Response::RequestHeadersAppend(const std::string& header) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  do {
+   if (header.empty())
+    break;
+   auto found = std::find(m_RequestHeaders.begin(), m_RequestHeaders.end(), header);
+   if (found != m_RequestHeaders.end())
+    m_RequestHeaders.erase(found);
+   m_RequestHeaders.emplace_back(header);
+  } while (0);
+ }
+ void Response::RequestHeaders(const TypeHeaders& headers) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_RequestHeaders = headers;
+ }
+ void Response::WhatRequest(const std::string& what) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_WhatRequest = what;
+ }
+ bool Response::CreateCacheFile(const std::string& file_pathname, curl_off_t& resume_from_large) {
+  bool result = false;
+  resume_from_large = 0;
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  do {
+   if (file_pathname.empty())
+    break;
+   SK_DELETE_PTR(m_pFileCache);
+   m_pFileCache = new FileCache(file_pathname);
+   if (!m_pFileCache)
+    break;
+   auto current_size = m_pFileCache->FileSizeGet();
+   m_ResumeFromLarge.store(static_cast<decltype(m_ResumeFromLarge)>(current_size));
+   m_CachePathname = file_pathname;
+   resume_from_large = m_ResumeFromLarge.load();
+   result = true;
+  } while (0);
+  return result;
+ }
+ void Response::operator<<(const std::ostringstream& stream) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_WriteStream = stream.str();
+ }
+ void Response::MaxRecvSpeedLarge(const long long& large) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_MaxRecvSpeedLarge.store(large);
+ }
+ long long Response::MaxRecvSpeedLarge() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_MaxRecvSpeedLarge.load();
+ }
+ long long Response::LastDownSize() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_LastDownSize.load();
+ }
+ void Response::ResumeFromLargeMode(const EnResumeFromLargeMode& mode) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_ResumeFromLargeMode.store(mode);
+ }
+ EnResumeFromLargeMode Response::ResumeFromLargeMode() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_ResumeFromLargeMode.load();
+ }
+ void Response::CleanCacheFile() {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  if (m_pFileCache)
+   m_pFileCache->Reset();
+  m_ResumeFromLarge.store(0);
+  m_TargetTotalSize.store(0);
+  m_LastDownSize.store(0);
+  m_LastDownTimestampMS.store(0);
+  m_LastDownSpeed.store(0);
+  m_LastDownRemainTime.store(0);
+ }
+ void Response::CurlCode(const unsigned int& code) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_CurlCode = code;
+ }
+ void Response::CurlMsg(const unsigned int& code) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_CurlMsg = code;
+ }
+ void Response::RoutePtr(void* ptr) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_RoutePtr = ptr;
+ }
+ EnRequestType Response::RequestType() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_RequestType.load();
+ }
+ void Response::RequestType(const EnRequestType& type) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_RequestType.store(type);
+ }
+ FileCache* Response::FileCacheGet() const {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  return m_pFileCache;
+ }
+ void Response::Body(const std::string& stream) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_WriteStream = stream;
+ }
+ void Response::operator<<(const TypeHeaders& headers) {
+  std::lock_guard<std::mutex> lock{ *m_Mutex };
+  m_ResponseHeaders = headers;
+
+  const char* found = R"(content-length: )";
+  const size_t found_size = ::strlen(found);
+  for (const auto& headstr : m_ResponseHeaders) {
+   auto find = ::StrStrIA(headstr.c_str(), found);
+   if (!find)
+    continue;
+   m_ContentLength = ::strtoul(find + found_size, nullptr, 10);
+   break;
   }
  }
  void Response::operator<<(const Request* easy) {
@@ -139,12 +315,8 @@ namespace local {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
   return m_CurlMsg;
  }
- const std::string& Response::ExceptionReason() const {
-  std::lock_guard<std::mutex> lock{ *m_Mutex };
-  return m_ExceptionReason;
- }
  const long& Response::HttpCode() const {
   std::lock_guard<std::mutex> lock{ *m_Mutex };
   return m_ResponseCode;
  }
-}///namespace local
+}///namespace libcurlpp

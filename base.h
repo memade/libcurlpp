@@ -1,7 +1,7 @@
 ﻿#if !defined(INC_H___D8AD52B7_1F82_4C4E_996B_BFFF032DE88F__HEAD__)
 #define INC_H___D8AD52B7_1F82_4C4E_996B_BFFF032DE88F__HEAD__
 
-namespace local {
+namespace libcurlpp {
 
  struct tagProgress {
   double total_down;
@@ -11,10 +11,11 @@ namespace local {
 
   long long current_time_stamp;
   tagProgress() { ::memset(this, 0x00, sizeof(*this)); }
-  void operator=(const tagProgress& obj) { ::memcpy(this,&obj,sizeof(*this)); }
+  void operator=(const tagProgress& obj) { ::memcpy(this, &obj, sizeof(*this)); }
  };
 
-}///namespace local
+}///namespace libcurlpp
+
 
 /// /*新生®（上海）**/
 /// /*2022_09_20T01:16:27.9186966Z**/
