@@ -32,3 +32,5 @@
 *.app
 
 *.vcxproj.user
+build/
+bin/
