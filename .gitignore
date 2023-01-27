@@ -34,3 +34,4 @@
 *.vcxproj.user
 build/
 bin/
+lib/
