@@ -28,19 +28,21 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 MSVC_USE_CRT_OPTION(${PROJECT_NAME})
 
 # 指定专用库头文件目录
-target_include_directories(${PROJECT_NAME} 
-PRIVATE 
-${SOLUTION_ROOT_DIR}/3rdparty/spdlog/include/
-${SOLUTION_ROOT_DIR}/3rdparty/quickfix1.15.1/src/
-${SOLUTION_ROOT_DIR}/3rdparty/quickfix1.15.1/src/C++/
-${SOLUTION_ROOT_DIR}/include/openssl/3.0.5/
+target_include_directories(${PROJECT_NAME} PRIVATE
+${SOURCES_DIR}
+${CURRENT_SOLUTION_DIR}/include
+${SOLUTION_ROOT_DIR}/3rdparty
+${SOLUTION_ROOT_DIR}/include
+${SOLUTION_ROOT_DIR}/3rdparty/spdlog/include
+${SOLUTION_ROOT_DIR}/3rdparty/curlpp-0.8.1/include
+${SOLUTION_ROOT_DIR}/3rdparty/curl-7.85.0/include
 )
 
 # 依赖库目录
-target_link_directories(${PROJECT_NAME} 
-PRIVATE 
-${SOLUTION_ROOT_DIR}/librarys/$(Platform)/
-${SOLUTION_ROOT_DIR}/librarys/openssl/3.0.5/$(Platform)/
+target_link_directories(${PROJECT_NAME} PRIVATE
+${SOLUTION_ROOT_DIR}/librarys/3rdparty/$(Platform)
+${SOLUTION_ROOT_DIR}/librarys/shared/$(Platform)
+${SOLUTION_ROOT_DIR}/librarys/openssl/3.1.0-beta1/$(Platform)
 )
 
 # MSVC 预编译头设置

@@ -53,14 +53,14 @@ namespace libcurlpp {
   Finished = 0x0051,
  }EnRequestStatus;
 
- enum class EnDownSuccessType : unsigned long long {
+ typedef enum class EnDownSuccessType : unsigned long long {
   /*HTTP OK*/
   Success = 0xC8,
   /*Partial Content success.*/
   PartialContentSuccess = 0xCE,
   /*Requested Range Not Satisfiable*/
   RequestedRangeNotSatisfiableSuccess = 0x1A0,
- };
+ }EnHttpCodeType;
 
  typedef enum class EnProgressActionType : int {
   Continue = 0x0000,

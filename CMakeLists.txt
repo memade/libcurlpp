@@ -32,6 +32,9 @@ set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
 OutputPathConfig("bin" "bin" "lib")
 add_subdirectory(${CURRENT_SOLUTION_DIR}/cmake/core/)
 #set_target_properties(win PROPERTIES FOLDER "shared")
+
+add_subdirectory(${CURRENT_SOLUTION_DIR}/cmake/tests/libcurlpp_test_core/)
+set_target_properties(libcurlpp_test_core PROPERTIES FOLDER "tests")
 OutputPathConfig("")
 
 
