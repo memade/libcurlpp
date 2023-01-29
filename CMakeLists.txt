@@ -26,8 +26,7 @@ LIST(APPEND CMAKE_MODULE_PATH ${GLOBAL_CMAKE_MODULES_PATH})
 include(msvc_methods)
 include(OutputPathConfig)
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set_property(GLOBAL PROPERTY PREDEFINED_TARGETS_FOLDER "CMakeTargets")
+MEMADE_SET_CMAKETARGETS_FOLDER()
 
 OutputPathConfig("bin" "bin" "lib")
 add_subdirectory(${CURRENT_SOLUTION_DIR}/cmake/core/)
